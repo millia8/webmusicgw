@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Playlist Guweh</title>
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    /* Reset & Global Styles */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #121212;
+      color: #ffffff;
+      line-height: 1.6;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    /* Header & Navigation */
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(135deg, #1f1f1f, #444444);
+      padding: 20px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    header h1 { font-size: 1.8em; }
+    nav {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+    nav a {
+      padding: 8px 12px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+    nav a:hover, nav a.active {
+      background-color: #333333;
+    }
+    #darkModeToggle {
+      background-color: #ffffff;
+      color: #121212;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    /* Container & Sections */
+    .container {
+      max-width: 1100px;
+      margin: 20px auto;
+      padding: 20px;
+    }
+    section {
+      display: none;
+      animation: fadeIn 0.4s ease forwards;
+      min-height: 60vh;
+      padding-bottom: 20px;
+    }
+    section.active { display: block; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Search Box */
+    .search-box { margin: 20px 0; }
+    .search-box input {
+      width: 100%;
+      padding: 10px;
+      font-size: 1em;
+      border: none;
+      border-radius: 4px;
+    }
+
+    /* Playlist Grid & Items */
+    .playlist-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    .playlist-item {
+      background-color: #242424;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+      transition: transform 0.2s, box-shadow 0.2s;
+      position: relative;
+    }
+    .playlist-item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.7);
+    }
+    .playlist-item h2 { margin-bottom: 5px; }
+    iframe {
+      width: 100%;
+      border: none;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+    /* Control Buttons (Edit/Delete) */
+    .track-controls {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      display: flex;
+      gap: 5px;
+    }
+    .track-controls button {
+      background-color: rgba(0,0,0,0.6);
+      color: #fff;
+      border: none;
+      padding: 4px 6px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8em;
+    }
+    .track-controls button:hover {
+      background-color: rgba(0,0,0,0.8);
+    }
+
+    /* Submit Form */
+    form.submit-form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-top: 20px;
+    }
+    form.submit-form input,
+    form.submit-form textarea {
+      padding: 10px;
+      font-size: 1em;
+      border: none;
+      border-radius: 4px;
+    }
+    form.submit-form button {
+      padding: 10px;
+      background-color: #00ffcc;
+      border: none;
+      border-radius: 4px;
+      color: #121212;
+      font-size: 1em;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.2s;
+    }
+    form.submit-form button:hover {
+      background-color: #00e6b8;
+    }
+    .error-message { color: #ff6666; font-size: 0.9em; }
+
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 20;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.7);
+      align-items: center;
+      justify-content: center;
+      animation: modalFadeIn 0.3s;
+    }
+    @keyframes modalFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .modal-content {
+      background-color: #1f1f1f;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+    }
+    .modal-content button {
+      margin-top: 15px;
+      padding: 8px 16px;
+      background-color: #00ffcc;
+      border: none;
+      border-radius: 4px;
+      color: #121212;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    /* About Section */
+    .about-content { line-height: 1.8; }
+
+    /* Footer */
+    footer {
+      background-color: #1f1f1f;
+      padding: 15px 20px;
+      text-align: center;
+      font-size: 0.9em;
+      margin-top: 40px;
+    }
+    footer a {
+      color: #00ffcc;
+      margin: 0 8px;
+      transition: color 0.2s;
+    }
+    footer a:hover { color: #00e6b8; }
+
+    /* Light Mode Overrides */
+    .light-mode {
+      background-color: #ffffff;
+      color: #121212;
+    }
+    .light-mode header { background-color: #eeeeee; }
+    .light-mode nav a { color: #121212; }
+    .light-mode .playlist-item { background-color: #f9f9f9; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+    .light-mode #darkModeToggle { background-color: #121212; color: #ffffff; }
+    .light-mode .modal-content { background-color: #eeeeee; color: #121212; }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      header { flex-direction: column; gap: 10px; }
+      nav { flex-direction: column; gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header & Navigation -->
+  <header>
+    <h1>Playlist Guweh</h1>
+    <nav>
+      <a href="#" data-target="home" class="active">Home</a>
+      <a href="#" data-target="playlist">Playlist</a>
+      <a href="#" data-target="submit">Submit Track</a>
+      <a href="#" data-target="about">About</a>
+    </nav>
+    <button id="darkModeToggle">Toggle Dark Mode</button>
+  </header>
+
+  <div class="container">
+    <!-- Home Section -->
+    <section id="home" class="active">
+      <h2>Selamat Datang di Playlist Guweh</h2>
+      <p>Temukan, dengarkan, dan bagikan lagu favoritmu. Jelajahi koleksi playlist yang lengkap, dan nikmati fitur interaktifnya!</p>
+    </section>
+
+    <!-- Playlist Section -->
+    <section id="playlist">
+      <div class="search-box">
+        <input type="text" id="searchBar" placeholder="Cari playlist...">
+      </div>
+      <div class="playlist-grid" id="playlistContainer">
+        <!-- Track 1 -->
+        <div class="playlist-item" data-id="1">
+          <div class="track-controls">
+            <button class="edit-track" data-id="1">Edit</button>
+            <button class="delete-track" data-id="1">Hapus</button>
+          </div>
+          <h2>Track 1</h2>
+          <p>Ini adalah lagu pertama dalam playlist.</p>
+          <iframe src="https://open.spotify.com/embed/track/2zVaxB54fNngkbWs5uZnla?si=WBQGIaVmSKSRwhHa-_JYKg" height="152" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
+        </div>
+        <!-- Track 2 -->
+        <div class="playlist-item" data-id="2">
+          <div class="track-controls">
+            <button class="edit-track" data-id="2">Edit</button>
+            <button class="delete-track" data-id="2">Hapus</button>
+          </div>
+          <h2>Track 2</h2>
+          <p>Ini adalah lagu kedua dalam playlist.</p>
+          <iframe src="https://open.spotify.com/embed/track/3M0lSi5WW79CXQamgSBIjx?si=ccHDuWLRSkOrsqqSWEmZNg" height="152" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
+        </div>
+        <!-- Track 3 -->
+        <div class="playlist-item" data-id="3">
+          <div class="track-controls">
+            <button class="edit-track" data-id="3">Edit</button>
+            <button class="delete-track" data-id="3">Hapus</button>
+          </div>
+          <h2>Track 3</h2>
+          <p>Ini adalah lagu ketiga dalam playlist.</p>
+          <iframe src="https://open.spotify.com/embed/track/0X2bh8NVQ8svDQIn2AdCbW?si=LsAHB_dxQwiHESv-0AcG5w" height="152" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
+        </div>
+        <!-- Track 4 -->
+        <div class="playlist-item" data-id="4">
+          <div class="track-controls">
+            <button class="edit-track" data-id="4">Edit</button>
+            <button class="delete-track" data-id="4">Hapus</button>
+          </div>
+          <h2>Track 4</h2>
+          <p>Ini adalah lagu keempat, tambahan spesial!</p>
+          <iframe src="https://open.spotify.com/embed/track/5pXui9rkf5W90DgZobuDiK?si=8242c8a68a514a7d" height="152" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
+        </div>
+      </div>
+    </section>
+
+    <!-- Submit Track Section -->
+    <section id="submit">
+      <h2>Submit Track Baru</h2>
+      <form id="submitForm" class="submit-form">
+        <input type="text" id="trackTitle" placeholder="Judul Track" required>
+        <input type="text" id="trackDescription" placeholder="Deskripsi Track" required>
+        <input type="url" id="trackUrl" placeholder="Spotify Embed URL" required>
+        <div class="error-message" id="errorMessage"></div>
+        <button type="submit">Submit Track</button>
+      </form>
+    </section>
+
+    <!-- About Section -->
+    <section id="about">
+      <h2>Tentang Playlist Guweh</h2>
+      <div class="about-content">
+        <p>Playlist Guweh adalah platform untuk berbagi dan menemukan lagu-lagu terbaik. Dilengkapi dengan fitur interaktif seperti submit, edit, dan hapus track, kami terus berinovasi untuk memberikan pengalaman mendalam di dunia musik.</p>
+      </div>
+    </section>
+  </div>
+
+  <!-- Modal Konfirmasi -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <p id="modalMessage">Track berhasil ditambahkan!</p>
+      <button id="closeModal">OK</button>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 Playlist Guweh. All rights reserved.</p>
+    <div>
+      <a href="https://instagram.com" target="_blank">Instagram</a> |
+      <a href="https://twitter.com" target="_blank">Twitter</a> |
+      <a href="https://facebook.com" target="_blank">Facebook</a>
+    </div>
+  </footer>
+
+  <script>
+    // DARK MODE DENGAN LOCALSTORAGE
+    const darkModeToggle = document.getElementById("darkModeToggle");
+    const currentMode = localStorage.getItem("theme");
+    if (currentMode === "light") {
+      document.body.classList.add("light-mode");
+    }
+    darkModeToggle.addEventListener("click", () => {
+      document.body.classList.toggle("light-mode");
+      localStorage.setItem("theme", document.body.classList.contains("light-mode") ? "light" : "dark");
+    });
+
+    // NAVIGASI ANTAR SEKSYON
+    const navLinks = document.querySelectorAll("nav a");
+    const sections = document.querySelectorAll("section");
+    navLinks.forEach(link => {
+      link.addEventListener("click", (e) => {
+        e.preventDefault();
+        navLinks.forEach(l => l.classList.remove("active"));
+        link.classList.add("active");
+        const target = link.getAttribute("data-target");
+        sections.forEach(sec => {
+          sec.classList.toggle("active", sec.id === target);
+        });
+      });
+    });
+
+    // SEARCH FILTER PLAYLIST
+    const searchBar = document.getElementById("searchBar");
+    searchBar.addEventListener("input", (e) => {
+      const query = e.target.value.toLowerCase();
+      document.querySelectorAll(".playlist-item").forEach(item => {
+        item.style.display = item.innerText.toLowerCase().includes(query) ? "block" : "none";
+      });
+    });
+
+    // DATA & FUNGSI TRACK (ID untuk setiap track)
+    let trackCounter = 4; // Track awal sudah bernilai 4
+    const validateURL = (url) => {
+      return url.includes("open.spotify.com/embed/track/");
+    };
+
+    // Tampilkan modal dengan pesan kustom
+    function showModal(message) {
+      document.getElementById("modalMessage").innerText = message;
+      document.getElementById("modal").style.display = "flex";
+    }
+    document.getElementById("closeModal").addEventListener("click", () => {
+      document.getElementById("modal").style.display = "none";
+    });
+    window.addEventListener("click", (e) => {
+      if (e.target === document.getElementById("modal")) {
+        document.getElementById("modal").style.display = "none";
+      }
+    });
+
+    // TAMBAH TRACK BARU DENGAN SUBMIT FORM
+    document.getElementById("submitForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const title = document.getElementById("trackTitle").value.trim();
+      const description = document.getElementById("trackDescription").value.trim();
+      const url = document.getElementById("trackUrl").value.trim();
+      const errorMessage = document.getElementById("errorMessage");
+      errorMessage.innerText = "";
+
+      if (!validateURL(url)) {
+        errorMessage.innerText = "URL tidak valid. Pastikan URL memiliki format embed Spotify.";
+        return;
+      }
+
+      trackCounter++;
+      const newTrackID = trackCounter;
+      // Buat elemen baru untuk track, track baru akan dimasukkan di awal grid
+      const newItem = document.createElement("div");
+      newItem.classList.add("playlist-item");
+      newItem.setAttribute("data-id", newTrackID);
+      newItem.innerHTML = `
+        <div class="track-controls">
+          <button class="edit-track" data-id="${newTrackID}">Edit</button>
+          <button class="delete-track" data-id="${newTrackID}">Hapus</button>
+        </div>
+        <h2>${title}</h2>
+        <p>${description}</p>
+        <iframe src="${url}?utm_source=generator" height="152" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
+      `;
+      // Tambahkan di awal grid
+      const playlistContainer = document.getElementById("playlistContainer");
+      playlistContainer.insertBefore(newItem, playlistContainer.firstChild);
+
+      this.reset();
+      document.querySelector('nav a[data-target="playlist"]').click();
+      showModal("Track berhasil ditambahkan!");
+      attachControlEvents(newItem);
+    });
+
+    // FUNGSI UNTUK MENG-HANDLE DELETE & EDIT TRACK
+    function attachControlEvents(trackItem) {
+      // Hapus Track
+      trackItem.querySelector(".delete-track").addEventListener("click", function() {
+        if (confirm("Apakah Anda yakin ingin menghapus track ini?")) {
+          trackItem.remove();
+          showModal("Track dihapus.");
+        }
+      });
+      // Edit Track
+      trackItem.querySelector(".edit-track").addEventListener("click", function() {
+        const currentTitle = trackItem.querySelector("h2").innerText;
+        const currentDescription = trackItem.querySelector("p").innerText;
+        const currentFrame = trackItem.querySelector("iframe").src.split("?")[0];
+        const newTitle = prompt("Edit Judul Track:", currentTitle);
+        if (!newTitle) return;
+        const newDescription = prompt("Edit Deskripsi Track:", currentDescription);
+        if (!newDescription) return;
+        const newUrl = prompt("Edit URL (format embed):", currentFrame);
+        if (!validateURL(newUrl)) {
+          alert("URL tidak valid.");
+          return;
+        }
+        trackItem.querySelector("h2").innerText = newTitle;
+        trackItem.querySelector("p").innerText = newDescription;
+        trackItem.querySelector("iframe").src = newUrl + "?utm_source=generator";
+        showModal("Track berhasil diperbarui!");
+      });
+    }
+
+    // Lampirkan event delete & edit ke track awal
+    document.querySelectorAll(".playlist-item").forEach(item => attachControlEvents(item));
+  </script>
+</body>
+</html>
